@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshKeeper AI - Smart Food Management System</title>
+        <script src="experiment.js"></script>
+        <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* AI Assistant Chat */
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .ai-chat-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        .ai-chat-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .ai-chat-button.active {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+            50% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.7), 0 0 0 10px rgba(102, 126, 234, 0.1); }
+            100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+        }
+
+        .ai-chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 420px;
+            height: 650px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ai-chat-window.show {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .ai-chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .ai-chat-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .ai-chat-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .ai-status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #27ae60;
+            border: 2px solid white;
+        }
+
+        .ai-status-indicator.offline {
+            background: #e74c3c;
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            max-height: 400px;
+        }
+
+        .ai-message, .user-message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 15px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .ai-message {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            color: #1565c0;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .recipe-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .recipe-details {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .ingredient-list {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 8px 0;
+            font-size: 13px;
+        }
+
+        .nutrition-info {
+            background: linear-gradient(135deg, #e8f5e8, #d4eedd);
+            border-left: 4px solid #27ae60;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .ai-chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            gap: 10px;
+        }
+
+        .ai-chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .ai-chat-input input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .ai-chat-input button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .ai-chat-input button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .ai-chat-input button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Loading Animation */
+        .ai-typing {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 15px;
+            max-width: 80%;
+            margin-bottom: 15px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #1565c0;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Quick suggestions */
+        .quick-suggestions {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .suggestion-chip {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .suggestion-chip:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Rest of the original styles remain the same */
+        .notification-center {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            max-width: 400px;
+        }
+
+        .smart-notification {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+            overflow: hidden;
+            transform: translateX(450px);
+            transition: all 0.4s ease;
+            border-left: 5px solid;
+        }
+
+        .smart-notification.show {
+            transform: translateX(0);
+        }
+
+        .smart-notification.critical { border-left-color: #e74c3c; }
+        .smart-notification.warning { border-left-color: #f39c12; }
+        .smart-notification.info { border-left-color: #3498db; }
+        .smart-notification.success { border-left-color: #27ae60; }
+
+        .notification-header {
+            padding: 15px 20px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .notification-body {
+            padding: 0 20px 15px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .notification-actions {
+            padding: 0 20px 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .notification-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .notification-btn.secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        .notification-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Navigation and other existing styles */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            background: white;
+            border-radius: 15px;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .nav-tab {
+            padding: 15px 30px;
+            border: none;
+            background: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab:not(.active) {
+            color: #7f8c8d;
+        }
+
+        .nav-tab:not(.active):hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 6px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .stat-card.urgent { border-left-color: #e74c3c; }
+        .stat-card.warning { border-left-color: #f39c12; }
+        .stat-card.good { border-left-color: #27ae60; }
+        .stat-card.total { border-left-color: #3498db; }
+
+        .stat-info h3 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .stat-info p {
+            color: #7f8c8d;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            opacity: 0.8;
+        }
+
+        .controls {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .search-box, .category-filter {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus, .category-filter:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .add-form {
+            display: none;
+            border-top: 3px solid #667eea;
+            padding-top: 25px;
+            margin-top: 25px;
+        }
+
+        .add-form.show {
+            display: block;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-input {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .items-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .items-header {
+            padding: 30px;
+            border-bottom: 1px solid #ecf0f1;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        }
+
+        .items-header h3 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .items-list {
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        .item {
+            padding: 25px 30px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .item:hover {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            transform: translateX(5px);
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .item-icon {
+            font-size: 2.5rem;
+            width: 60px;
+            text-align: center;
+        }
+
+        .item-details h4 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .item-details p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-badge {
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .status-expired {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .status-urgent {
+            background: linear-gradient(135deg, #ffa726, #ff9800);
+            color: white;
+        }
+
+        .status-warning {
+            background: linear-gradient(135deg, #ffeb3b, #fdd835);
+            color: #333;
+        }
+
+        .status-good {
+            background: linear-gradient(135deg, #4caf50, #43a047);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 25px;
+            opacity: 0.5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Other tabs styling */
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .notification-settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .setting-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .setting-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .setting-toggle.active {
+            background: #667eea;
+        }
+
+        .setting-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .setting-toggle.active::after {
+            transform: translateX(30px);
+        }
+
+        @media (max-width: 768px) {
+            .ai-chat-window {
+                width: 95vw;
+                height: 70vh;
+                right: 2.5vw;
+            }
+
+            .notification-center {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+
+            .smart-notification {
+                transform: translateY(-100px);
+            }
+
+            .smart-notification.show {
+                transform: translateY(0);
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+                width: 100%;
+                max-width: 400px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-suggestions {
+                padding: 8px 15px;
+            }
+
+            .suggestion-chip {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🍎 FreshKeeper AI</h1>
+            <p>Your Smart Food Management System with Enhanced AI Assistant</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="inventory">
+                📱 Smart Inventory
+            </button>
+            <button class="nav-tab" data-tab="recipes">
+                👨‍🍳 AI Recipes
+            </button>
+            <button class="nav-tab" data-tab="notifications">
+                🔔 Smart Alerts
+            </button>
+            <button class="nav-tab" data-tab="analytics">
+                📊 AI Analytics
+            </button>
+            <button class="nav-tab" data-tab=" ai analytics">
+                📊 Advanced AI Recognition System 
+                
+            </button>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div id="inventory" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card urgent">
+                    <div class="stat-info">
+                        <h3 id="urgentCount">0</h3>
+                        <p>Expiring Soon</p>
+                    </div>
+                    <div class="stat-icon">⚠️</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-info">
+                        <h3 id="warningCount">0</h3>
+                        <p>Needs Attention</p>
+                    </div>
+                    <div class="stat-icon">🔔</div>
+                </div>
+                <div class="stat-card good">
+                    <div class="stat-info">
+                        <h3 id="goodCount">0</h3>
+                        <p>Fresh Items</p>
+                    </div>
+                    <div class="stat-icon">✅</div>
+                </div>
+                <div class="stat-card total">
+                    <div class="stat-info">
+                        <h3 id="totalCount">0</h3>
+                        <p>Total Items</p>
+                    </div>
+                    <div class="stat-icon">📦</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="controls-row">
+                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search items...">
+                    <select id="categoryFilter" class="category-filter">
+                        <option value="all">📦 All Items</option>
+                        <option value="dairy">🥛 Dairy</option>
+                        <option value="fruits">🍎 Fruits</option>
+                        <option value="vegetables">🥕 Vegetables</option>
+                        <option value="meat">🥩 Meat</option>
+                        <option value="grains">🌾 Grains</option>
+                        <option value="other">📦 Other</option>
+                    </select>
+                    <button id="addItemBtn" class="btn btn-primary">
+                        ➕ Add Item
+                    </button>
+                </div>
+
+                <!-- Add Item Form -->
+                <div id="addForm" class="add-form">
+                    <div class="form-grid">
+                        <input type="text" id="itemName" class="form-input" placeholder="Item name" required>
+                        <select id="itemCategory" class="form-input">
+                            <option value="dairy">🥛 Dairy</option>
+                            <option value="fruits">🍎 Fruits</option>
+                            <option value="vegetables">🥕 Vegetables</option>
+                            <option value="meat">🥩 Meat</option>
+                            <option value="grains">🌾 Grains</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                        <input type="date" id="itemExpiry" class="form-input" required>
+                        <input type="number" id="itemQuantity" class="form-input" placeholder="Quantity" min="1" value="1">
+                    </div>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button id="saveItemBtn" class="btn btn-success">
+                            💾 Save Item
+                        </button>
+                        <button id="cancelBtn" class="btn btn-secondary">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Container -->
+            <div class="items-container">
+                <div class="items-header">
+                    <h3>Your Smart Food Inventory</h3>
+                </div>
+                <div id="itemsList" class="items-list">
+                    <!-- Items will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Recipes Tab -->
+        <div id="recipes" class="tab-content">
+            <div class="content-card">
+                <h3>🍳 AI Recipe Suggestions</h3>
+                <p>Get personalized recipe recommendations based on your available ingredients! Use the AI Assistant to ask for specific recipes, cooking tips, or meal planning advice.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="openAIChat('recipe')">
+                        Ask AI for Recipes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications" class="tab-content">
+            <div class="content-card">
+                <h3>🔔 Smart Notification Settings</h3>
+                <div class="notification-settings">
+                    <div class="setting-item">
+                        <div>
+                            <h4>Expiration Alerts</h4>
+                            <p>Get notified when items are about to expire</p>
+                        </div>
+                        <div class="setting-toggle active" data-setting="expiration"></div>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <h4>Low Stock Warnings</h4>
+                            <p>Alert when item quantities are running low</p>
+                        </div>
+                        <div class="setting-toggle active" data-setting="lowstock"></div>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <h4>Recipe Suggestions</h4>
+                            <p>Get recipe ideas based on your inventory</p>
+                        </div>
+                        <div class="setting-toggle active" data-setting="recipes"></div>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <h4>Shopping Reminders</h4>
+                            <p>Reminders to restock frequently used items</p>
+                        </div>
+                        <div class="setting-toggle" data-setting="shopping"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="content-card">
+                <h3>📊 Food Waste Analytics</h3>
+                <p>Track your food consumption patterns and reduce waste with AI insights. Ask the AI Assistant for personalized analytics and recommendations!</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="openAIChat('analytics')">
+                        Get AI Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- AI Analytics Tab -->
+
+    <div id="ai-analytics" class="tab-content">
+            <a href="C:\Users\malik\OneDrive\Desktop\ai food app\second.html" target="_blank">
+  <button>Go to Example</button>
+</a>
+
+    </div>
+
+    <!-- AI Assistant -->
+    <div class="ai-assistant">
+
+
+    </a>
+
+        <button class="ai-chat-button" id="aiChatBtn">
+            🤖
+        </button>
+        
+        <div class="ai-chat-window" id="aiChatWindow">
+            <div class="ai-chat-header">
+                <div class="ai-status-indicator" id="aiStatus"></div>
+                <h3>🍽️ Enhanced FreshKeeper AI</h3>
+                <p>Your comprehensive food & nutrition expert</p>
+            </div>
+            
+            <div class="ai-chat-messages" id="aiMessages">
+                <div class="ai-message">
+                    👋 Hi! I'm your enhanced FreshKeeper AI assistant! I can help you with:
+                    <br>• 🍳 Detailed recipes with exact quantities & instructions
+                    <br>• 🥗 Complete nutritional information & calorie counts
+                    <br>• 📅 Food storage tips & shelf life guidance
+                    <br>• 🛒 Smart shopping lists & meal planning
+                    <br>• 🔄 Food waste reduction & sustainability tips
+                    <br>• 🍎 Ingredient substitutions & cooking techniques
+                    <br>• 💪 Diet-specific advice (keto, vegan, etc.)
+                    <br><br>What would you like to know about food and nutrition today?
+                </div>
+            </div>
+            
+            <div class="quick-suggestions">
+                <div class="suggestion-chip" onclick="sendQuickMessage('Recipe with chicken and rice portions')">Recipe with portions</div>
+                <div class="suggestion-chip" onclick="sendQuickMessage('Nutritional value of spinach per 100g')">Nutrition facts</div>
+                <div class="suggestion-chip" onclick="sendQuickMessage('How to store avocados properly')">Storage guide</div>
+                <div class="suggestion-chip" onclick="sendQuickMessage('Vegan protein sources list')">Diet advice</div>
+                <div class="suggestion-chip" onclick="sendQuickMessage('Meal prep ideas for the week')">Meal planning</div>
+            </div>
+            
+            <div class="ai-chat-input">
+                <input type="text" id="aiChatInput" placeholder="Ask about recipes, nutrition, ingredients..." maxlength="500">
+                <button id="aiSendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Center -->
+    <div class="notification-center" id="notificationCenter">
+        <!-- Notifications will appear here -->
+    </div>
+
+    <script>
+        // Enhanced Food and Nutrition Knowledge Base
+        const ENHANCED_FOOD_KNOWLEDGE = {
+            // Comprehensive recipe database
+            recipes: {
+                "chicken and rice": {
+                    title: "Classic Chicken and Rice",
+                    servings: 4,
+                    cookTime: "30 mins",
+                    ingredients: [
+                        "2 cups jasmine rice (400g)",
+                        "4 chicken breasts (600g)",
+                        "1 onion (150g), diced",
+                        "2 cloves garlic (6g), minced",
+                        "3 cups chicken broth (750ml)",
+                        "2 tbsp olive oil (30ml)",
+                        "1 tsp salt (5g)",
+                        "1/2 tsp black pepper (2g)",
+                        "1 tsp paprika (2g)"
+                    ],
+                    instructions: [
+                        "Season chicken with salt, pepper, and paprika",
+                        "Heat olive oil in large pan over medium-high heat",
+                        "Cook chicken 6-7 mins per side until golden",
+                        "Remove chicken, add onion and garlic to pan",
+                        "Add rice, stir for 2 minutes",
+                        "Add broth, bring to boil, reduce heat",
+                        "Return chicken to pan, cover, simmer 20 mins",
+                        "Let rest 5 minutes before serving"
+                    ],
+                    nutrition: {
+                        calories: 520,
+                        protein: "42g",
+                        carbs: "58g",
+                        fat: "12g",
+                        fiber: "2g"
+                    }
+                },
+                "vegetable stir fry": {
+                    title: "Rainbow Vegetable Stir Fry",
+                    servings: 3,
+                    cookTime: "15 mins",
+                    ingredients: [
+                        "2 cups broccoli florets (200g)",
+                        "1 bell pepper (120g), sliced",
+                        "1 carrot (80g), julienned",
+                        "1 cup snap peas (100g)",
+                        "2 cloves garlic (6g), minced",
+                        "1 tbsp fresh ginger (8g), minced",
+                        "2 tbsp soy sauce (30ml)",
+                        "1 tbsp sesame oil (15ml)",
+                        "1 tbsp vegetable oil (15ml)",
+                        "1 tsp cornstarch (3g)"
+                    ],
+                    instructions: [
+                        "Heat vegetable oil in wok over high heat",
+                        "Add garlic and ginger, stir-fry 30 seconds",
+                        "Add harder vegetables first (carrots, broccoli)",
+                        "Stir-fry 3-4 minutes until crisp-tender",
+                        "Add softer vegetables (peppers, snap peas)",
+                        "Mix soy sauce with cornstarch, add to wok",
+                        "Stir-fry 2 more minutes",
+                        "Drizzle with sesame oil before serving"
+                    ],
+                    nutrition: {
+                        calories: 145,
+                        protein: "6g",
+                        carbs: "18g",
+                        fat: "8g",
+                        fiber: "6g"
+                    }
+                },
+                "pasta with tomatoes": {
+                    title: "Fresh Tomato Basil Pasta",
+                    servings: 4,
+                    cookTime: "20 mins",
+                    ingredients: [
+                        "400g whole wheat pasta",
+                        "500g cherry tomatoes, halved",
+                        "4 cloves garlic (12g), sliced",
+                        "1/4 cup fresh basil (15g), chopped",
+                        "3 tbsp olive oil (45ml)",
+                        "100g parmesan cheese, grated",
+                        "Salt and pepper to taste"
+                    ],
+                    instructions: [
+                        "Cook pasta according to package directions",
+                        "Heat olive oil in large pan",
+                        "Add garlic, cook until fragrant",
+                        "Add tomatoes, cook until softened",
+                        "Add drained pasta to tomato mixture",
+                        "Toss with basil and parmesan",
+                        "Season with salt and pepper"
+                    ],
+                    nutrition: {
+                        calories: 485,
+                        protein: "18g",
+                        carbs: "72g",
+                        fat: "15g",
+                        fiber: "8g"
+                    }
+                }
+            },
+
+            // Detailed nutritional information
+            nutritionFacts: {
+                chicken: {
+                    per100g: {
+                        calories: 165,
+                        protein: "31g",
+                        fat: "3.6g",
+                        carbs: "0g",
+                        vitamins: ["B6", "B12", "Niacin"],
+                        minerals: ["Selenium", "Phosphorus"]
+                    },
+                    benefits: "High in protein, supports muscle growth, rich in B vitamins"
+                },
+                rice: {
+                    per100g: {
+                        calories: 130,
+                        protein: "2.7g",
+                        fat: "0.3g",
+                        carbs: "28g",
+                        fiber: "0.4g",
+                        vitamins: ["Thiamine", "Folate"],
+                        minerals: ["Manganese", "Selenium"]
+                    },
+                    benefits: "Quick energy source, gluten-free, easy to digest"
+                },
+                spinach: {
+                    per100g: {
+                        calories: 23,
+                        protein: "2.9g",
+                        fat: "0.4g",
+                        carbs: "3.6g",
+                        fiber: "2.2g",
+                        vitamins: ["K", "A", "Folate", "C"],
+                        minerals: ["Iron", "Manganese", "Magnesium"]
+                    },
+                    benefits: "Rich in iron and vitamins, supports eye health, antioxidant properties"
+                },
+                banana: {
+                    per100g: {
+                        calories: 89,
+                        protein: "1.1g",
+                        fat: "0.3g",
+                        carbs: "23g",
+                        fiber: "2.6g",
+                        vitamins: ["C", "B6"],
+                        minerals: ["Potassium", "Manganese"]
+                    },
+                    benefits: "Natural energy boost, supports heart health, aids muscle function"
+                },
+                milk: {
+                    per100ml: {
+                        calories: 64,
+                        protein: "3.4g",
+                        fat: "3.6g",
+                        carbs: "5g",
+                        vitamins: ["B12", "Riboflavin", "A"],
+                        minerals: ["Calcium", "Phosphorus"]
+                    },
+                    benefits: "Builds strong bones, complete protein source, supports teeth health"
+                },
+                tomato: {
+                    per100g: {
+                        calories: 18,
+                        protein: "0.9g",
+                        fat: "0.2g",
+                        carbs: "3.9g",
+                        fiber: "1.2g",
+                        vitamins: ["C", "K", "Folate"],
+                        minerals: ["Potassium"],
+                        antioxidants: ["Lycopene"]
+                    },
+                    benefits: "Rich in lycopene, supports heart health, anti-inflammatory"
+                },
+                broccoli: {
+                    per100g: {
+                        calories: 34,
+                        protein: "2.8g",
+                        fat: "0.4g",
+                        carbs: "7g",
+                        fiber: "2.6g",
+                        vitamins: ["C", "K", "Folate"],
+                        minerals: ["Potassium", "Iron"]
+                    },
+                    benefits: "Cancer-fighting compounds, high in vitamin C, supports immune system"
+                },
+                salmon: {
+                    per100g: {
+                        calories: 208,
+                        protein: "25g",
+                        fat: "12g",
+                        carbs: "0g",
+                        omega3: "2.3g",
+                        vitamins: ["D", "B12", "B6"],
+                        minerals: ["Selenium", "Potassium"]
+                    },
+                    benefits: "Rich in omega-3 fatty acids, supports brain health, anti-inflammatory"
+                }
+            },
+
+            // Food storage and shelf life guide
+            storageGuide: {
+                dairy: {
+                    milk: "Refrigerate at 35-40°F, lasts 5-7 days past sell-by date",
+                    cheese: "Wrap in wax paper, refrigerate, hard cheeses last 3-4 weeks",
+                    yogurt: "Keep refrigerated, consume within 1-2 weeks of expiration",
+                    butter: "Refrigerate for 3 months, freeze for 6-9 months"
+                },
+                fruits: {
+                    banana: "Room temp to ripen, refrigerate when ripe (skin darkens but fruit stays good)",
+                    apple: "Refrigerate in crisper drawer, lasts 1-2 months",
+                    berries: "Refrigerate immediately, consume within 3-7 days",
+                    citrus: "Room temp for 1 week, refrigerate for 3-4 weeks",
+                    avocado: "Room temp to ripen, refrigerate when ripe for 3-5 days"
+                },
+                vegetables: {
+                    leafyGreens: "Wash, dry thoroughly, store in crisper with paper towels",
+                    root: "Cool, dark, dry place with good ventilation",
+                    tomatoes: "Room temp for best flavor, refrigerate when fully ripe",
+                    onions: "Cool, dry, dark place with air circulation, away from potatoes",
+                    potatoes: "Cool, dark place (not refrigerator), away from onions"
+                },
+                meat: {
+                    chicken: "Refrigerate at 40°F or below, use within 1-2 days, freeze for up to 12 months",
+                    beef: "Refrigerate 3-5 days, freeze 6-12 months",
+                    fish: "Use within 1-2 days when refrigerated, freeze for 2-3 months",
+                    pork: "Refrigerate 3-5 days, freeze 4-6 months"
+                },
+                grains: {
+                    rice: "Airtight container in cool, dry place, lasts 4-6 years",
+                    pasta: "Cool, dry place in original packaging, 2-3 years",
+                    bread: "Room temp 2-4 days, freeze for up to 3 months",
+                    oats: "Airtight container, 2 years in pantry"
+                }
+            },
+
+            // Diet-specific information
+            dietPlans: {
+                keto: {
+                    allowed: ["meat", "fish", "eggs", "cheese", "oils", "leafy greens", "nuts"],
+                    avoid: ["grains", "sugar", "fruits", "starchy vegetables"],
+                    macros: "70% fat, 25% protein, 5% carbs",
+                    tips: "Stay under 20g carbs daily, focus on healthy fats"
+                },
+                vegan: {
+                    protein: ["lentils", "chickpeas", "quinoa", "tofu", "tempeh", "nuts", "seeds"],
+                    nutrients: "B12, Iron, Zinc, Omega-3",
+                    alternatives: "Plant milk, nutritional yeast, aquafaba",
+                    tips: "Combine legumes with grains for complete proteins"
+                },
+                mediterranean: {
+                    staples: ["olive oil", "fish", "vegetables", "fruits", "whole grains", "legumes"],
+                    limited: ["red meat", "processed foods"],
+                    benefits: "Heart health, brain health, longevity",
+                    tips: "Use olive oil as primary fat, eat fish 2x weekly"
+                }
+            },
+
+            // Cooking techniques and tips
+            cookingTips: {
+                techniques: {
+                    sauté: "Quick cooking over medium-high heat with small amount of fat",
+                    roast: "Dry heat cooking in oven, great for vegetables and meats",
+                    steam: "Gentle cooking with steam, preserves nutrients",
+                    grill: "High heat cooking, adds smoky flavor",
+                    braise: "Slow cooking with liquid, perfect for tough cuts"
+                },
+                temperatures: {
+                    chicken: "165°F internal temperature",
+                    beef: "Medium-rare 135°F, Medium 145°F",
+                    fish: "145°F or flakes easily",
+                    eggs: "160°F for safety"
+                }
+            }
+        };
+
+        // Application state
+        let foodItems = [];
+        let notifications = [];
+        let notificationSettings = {
+            expiration: true,
+            lowstock: true,
+            recipes: true,
+            shopping: false
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            loadDataFromStorage();
+            setupEventListeners();
+            updateStats();
+            renderItems();
+            startNotificationSystem();
+            checkAIConnection();
+        }
+
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // Inventory management
+            document.getElementById('addItemBtn').addEventListener('click', toggleAddForm);
+            document.getElementById('saveItemBtn').addEventListener('click', saveItem);
+            document.getElementById('cancelBtn').addEventListener('click', hideAddForm);
+            document.getElementById('searchInput').addEventListener('input', filterItems);
+            document.getElementById('categoryFilter').addEventListener('change', filterItems);
+
+            // AI Assistant
+            document.getElementById('aiChatBtn').addEventListener('click', toggleAIChat);
+            document.getElementById('aiSendBtn').addEventListener('click', sendAIMessage);
+            document.getElementById('aiChatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendAIMessage();
+                }
+            });
+
+            // Notification settings
+            document.querySelectorAll('.setting-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    toggleNotificationSetting(this.dataset.setting);
+                });
+            });
+
+            // Set default expiry date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('itemExpiry').value = tomorrow.toISOString().split('T')[0];
+        }
+
+        // Data Management
+        function loadDataFromStorage() {
+            // Use in-memory storage since localStorage is not supported in artifacts
+            if (!foodItems.length) {
+                loadSampleData();
+            }
+        }
+
+        function saveDataToStorage() {
+            // Data is already stored in memory variables
+            console.log('Data saved to memory');
+        }
+
+        function loadSampleData() {
+            const sampleItems = [
+                { id: 1, name: 'Milk', category: 'dairy', expiry: getDateString(2), quantity: 1, icon: '🥛' },
+                { id: 2, name: 'Bananas', category: 'fruits', expiry: getDateString(5), quantity: 6, icon: '🍌' },
+                { id: 3, name: 'Chicken Breast', category: 'meat', expiry: getDateString(1), quantity: 2, icon: '🍗' },
+                { id: 4, name: 'Spinach', category: 'vegetables', expiry: getDateString(3), quantity: 1, icon: '🥬' }
+            ];
+            
+            foodItems = sampleItems;
+        }
+
+        function getDateString(daysFromNow) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysFromNow);
+            return date.toISOString().split('T')[0];
+        }
+
+        // Enhanced AI Assistant Functions
+        function checkAIConnection() {
+            const statusIndicator = document.getElementById('aiStatus');
+            // Always show as online since we have comprehensive local knowledge
+            statusIndicator.classList.remove('offline');
+            statusIndicator.title = 'Enhanced AI Assistant Online';
+        }
+
+        function toggleAIChat() {
+            const chatWindow = document.getElementById('aiChatWindow');
+            const chatButton = document.getElementById('aiChatBtn');
+            
+            if (chatWindow.classList.contains('show')) {
+                chatWindow.classList.remove('show');
+                chatButton.classList.remove('active');
+            } else {
+                chatWindow.classList.add('show');
+                chatButton.classList.add('active');
+                document.getElementById('aiChatInput').focus();
+            }
+        }
+
+        function openAIChat(context) {
+            const chatWindow = document.getElementById('aiChatWindow');
+            const chatButton = document.getElementById('aiChatBtn');
+            
+            chatWindow.classList.add('show');
+            chatButton.classList.add('active');
+            
+            const contextMessages = {
+                recipe: "What detailed recipes can I make with my current ingredients including exact quantities?",
+                analytics: "Can you analyze my food inventory and provide detailed nutritional insights?"
+            };
+            
+            if (contextMessages[context]) {
+                setTimeout(() => {
+                    sendQuickMessage(contextMessages[context]);
+                }, 500);
+            }
+        }
+
+        function sendQuickMessage(message) {
+            document.getElementById('aiChatInput').value = message;
+            sendAIMessage();
+        }
+
+        async function sendAIMessage() {
+            const input = document.getElementById('aiChatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Process message with enhanced knowledge base
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = getEnhancedFoodResponse(message);
+                addMessage(response, 'ai');
+            }, 1000 + Math.random() * 1000); // Simulate realistic response time
+        }
+
+        function getEnhancedFoodResponse(message) {
+            const msg = message.toLowerCase();
+            
+            // Recipe requests with detailed responses
+            if (msg.includes('recipe') || msg.includes('cook') || msg.includes('make')) {
+                return handleRecipeRequest(msg);
+            }
+            
+            // Nutritional information requests
+            if (msg.includes('nutrition') || msg.includes('calorie') || msg.includes('vitamin') || msg.includes('benefit') || msg.includes('per 100g')) {
+                return handleNutritionRequest(msg);
+            }
+            
+            // Storage and preservation
+            if (msg.includes('store') || msg.includes('keep') || msg.includes('fresh') || msg.includes('last') || msg.includes('shelf life')) {
+                return handleStorageRequest(msg);
+            }
+            
+            // Diet-specific advice
+            if (msg.includes('keto') || msg.includes('vegan') || msg.includes('mediterranean') || msg.includes('diet')) {
+                return handleDietRequest(msg);
+            }
+            
+            // Cooking techniques
+            if (msg.includes('how to cook') || msg.includes('technique') || msg.includes('temperature') || msg.includes('sauté') || msg.includes('roast')) {
+                return handleCookingRequest(msg);
+            }
+            
+            // Meal planning
+            if (msg.includes('meal prep') || msg.includes('plan') || msg.includes('weekly')) {
+                return handleMealPlanningRequest(msg);
+            }
+            
+            // Default comprehensive response
+            return getDefaultFoodResponse();
+        }
+
+        function handleRecipeRequest(msg) {
+            const availableIngredients = foodItems.map(item => item.name.toLowerCase());
+            let response = "🍳 **Detailed Recipe Suggestions:**\n\n";
+            
+            // Check for specific ingredients or provide recipes based on inventory
+            if (msg.includes('chicken') && msg.includes('rice')) {
+                const recipe = ENHANCED_FOOD_KNOWLEDGE.recipes["chicken and rice"];
+                response = formatRecipe(recipe);
+            } else if (msg.includes('vegetable') || msg.includes('stir fry')) {
+                const recipe = ENHANCED_FOOD_KNOWLEDGE.recipes["vegetable stir fry"];
+                response = formatRecipe(recipe);
+            } else if (msg.includes('pasta') || msg.includes('tomato')) {
+                const recipe = ENHANCED_FOOD_KNOWLEDGE.recipes["pasta with tomatoes"];
+                response = formatRecipe(recipe);
+            } else if (availableIngredients.length > 0) {
+                response += `Based on your inventory (${availableIngredients.join(', ')}), here are some suggestions:\n\n`;
+                
+                if (availableIngredients.includes('chicken')) {
+                    response += "🍗 **Chicken Options:**\n• Grilled chicken with herbs\n• Chicken stir-fry\n• Baked chicken breast\n\n";
+                }
+                
+                if (availableIngredients.includes('spinach')) {
+                    response += "🥬 **Spinach Ideas:**\n• Sautéed spinach with garlic\n• Spinach salad\n• Green smoothie\n\n";
+                }
+                
+                response += "Ask me for specific recipes like 'chicken and rice recipe with quantities' for detailed instructions!";
+            } else {
+                response = "I'd love to suggest recipes! Add some ingredients to your inventory first, or ask me about specific dishes like 'chicken and rice recipe' for detailed instructions with exact quantities.";
+            }
+            
+            return response;
+        }
+
+        function formatRecipe(recipe) {
+            let response = `<div class="recipe-card">
+                <div class="recipe-title">${recipe.title}</div>
+                <div class="recipe-details">
+                    <strong>Servings:</strong> ${recipe.servings} | <strong>Cook Time:</strong> ${recipe.cookTime}
+                    
+                    <div class="ingredient-list">
+                    <strong>Ingredients:</strong><br>
+                    ${recipe.ingredients.map(ing => `• ${ing}`).join('<br>')}
+                    </div>
+                    
+                    <strong>Instructions:</strong><br>
+                    ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join('<br>')}
+                </div>
+            </div>`;
+            
+            if (recipe.nutrition) {
+                response += `<div class="nutrition-info">
+                    <strong>Nutrition per serving:</strong><br>
+                    🔥 ${recipe.nutrition.calories} calories | 🍖 Protein: ${recipe.nutrition.protein} | 🍞 Carbs: ${recipe.nutrition.carbs} | 🥑 Fat: ${recipe.nutrition.fat}
+                </div>`;
+            }
+            
+            return response;
+        }
+
+        function handleNutritionRequest(msg) {
+            let response = "🥗 **Nutritional Information:**\n\n";
+            
+            // Check for specific foods
+            for (const [food, data] of Object.entries(ENHANCED_FOOD_KNOWLEDGE.nutritionFacts)) {
+                if (msg.includes(food)) {
+                    const key = food === 'milk' ? 'per100ml' : 'per100g';
+                    const unit = food === 'milk' ? '100ml' : '100g';
+                    
+                    response = `<div class="nutrition-info">
+                        <strong>${food.charAt(0).toUpperCase() + food.slice(1)} - Nutrition per ${unit}:</strong><br>
+                        🔥 <strong>Calories:</strong> ${data[key].calories}<br>
+                        🍖 <strong>Protein:</strong> ${data[key].protein}<br>
+                        🥑 <strong>Fat:</strong> ${data[key].fat}<br>
+                        🍞 <strong>Carbs:</strong> ${data[key].carbs}<br>
+                        ${data[key].fiber ? `🌾 <strong>Fiber:</strong> ${data[key].fiber}<br>` : ''}
+                        ${data[key].omega3 ? `🐟 <strong>Omega-3:</strong> ${data[key].omega3}<br>` : ''}
+                        
+                        <strong>Key Vitamins:</strong> ${data[key].vitamins.join(', ')}<br>
+                        <strong>Key Minerals:</strong> ${data[key].minerals.join(', ')}<br>
+                        ${data[key].antioxidants ? `<strong>Antioxidants:</strong> ${data[key].antioxidants.join(', ')}<br>` : ''}
+                        
+                        <strong>Health Benefits:</strong><br>
+                        ${data.benefits}
+                    </div>`;
+                    
+                    return response;
+                }
+            }
+            
+            // General nutrition advice
+            response += "Here are some key nutritional tips:\n\n";
+            response += "🍎 **Fruits & Vegetables:** Aim for 5-9 servings daily, vary colors for different nutrients\n\n";
+            response += "🍖 **Protein:** 0.8g per kg body weight, include variety (meat, fish, legumes, nuts)\n\n";
+            response += "🍞 **Carbohydrates:** Focus on complex carbs (whole grains, vegetables)\n\n";
+            response += "🥑 **Healthy Fats:** Include omega-3s (fish, walnuts, flax seeds)\n\n";
+            response += "💧 **Hydration:** 8-10 glasses of water daily\n\n";
+            response += "Ask about specific foods like 'nutrition facts for chicken' or 'spinach nutritional value' for detailed information!";
+            
+            return response;
+        }
+
+        function handleStorageRequest(msg) {
+            let response = "🥶 **Food Storage Guide:**\n\n";
+            
+            // Check for specific food categories
+            if (msg.includes('dairy') || msg.includes('milk') || msg.includes('cheese')) {
+                response += "**Dairy Products:**\n";
+                for (const [item, instruction] of Object.entries(ENHANCED_FOOD_KNOWLEDGE.storageGuide.dairy)) {
+                    response += `• **${item.charAt(0).toUpperCase() + item.slice(1)}:** ${instruction}\n`;
+                }
+            } else if (msg.includes('fruit') || msg.includes('banana') || msg.includes('apple')) {
+                response += "**Fruits:**\n";
+                for (const [item, instruction] of Object.entries(ENHANCED_FOOD_KNOWLEDGE.storageGuide.fruits)) {
+                    response += `• **${item.charAt(0).toUpperCase() + item.slice(1)}:** ${instruction}\n`;
+                }
+            } else if (msg.includes('vegetable') || msg.includes('greens') || msg.includes('tomato')) {
+                response += "**Vegetables:**\n";
+                for (const [item, instruction] of Object.entries(ENHANCED_FOOD_KNOWLEDGE.storageGuide.vegetables)) {
+                    response += `• **${item.charAt(0).toUpperCase() + item.slice(1)}:** ${instruction}\n`;
+                }
+            } else if (msg.includes('meat') || msg.includes('chicken') || msg.includes('fish')) {
+                response += "**Meat & Fish:**\n";
+                for (const [item, instruction] of Object.entries(ENHANCED_FOOD_KNOWLEDGE.storageGuide.meat)) {
+                    response += `• **${item.charAt(0).toUpperCase() + item.slice(1)}:** ${instruction}\n`;
+                }
+            } else if (msg.includes('grain') || msg.includes('rice') || msg.includes('bread')) {
+                response += "**Grains & Bread:**\n";
+                for (const [item, instruction] of Object.entries(ENHANCED_FOOD_KNOWLEDGE.storageGuide.grains)) {
+                    response += `• **${item.charAt(0).toUpperCase() + item.slice(1)}:** ${instruction}\n`;
+                }
+            } else {
+                // General storage tips
+                response += "**General Storage Tips:**\n\n";
+                response += "🧊 **Refrigerator (35-40°F):** Dairy, meat, leftovers, most vegetables\n";
+                response += "🏠 **Room Temperature:** Bananas, tomatoes, onions, potatoes, bread\n";
+                response += "❄️ **Freezer (0°F):** Meat, bread, berries, prepared meals\n";
+                response += "🌡️ **Cool & Dry:** Grains, nuts, canned goods, root vegetables\n\n";
+                response += "**Pro Tips:**\n";
+                response += "• Keep fruits and vegetables separate (ethylene gas affects ripening)\n";
+                response += "• Store herbs like flowers in water\n";
+                response += "• Use airtight containers for dry goods\n";
+                response += "• Label and date everything in the freezer\n\n";
+                response += "Ask about specific foods like 'how to store avocados' for detailed guidance!";
+            }
+            
+            return response;
+        }
+
+        function handleDietRequest(msg) {
+            let response = "🥗 **Diet & Nutrition Advice:**\n\n";
+            
+            if (msg.includes('keto')) {
+                const keto = ENHANCED_FOOD_KNOWLEDGE.dietPlans.keto;
+                response += "**Ketogenic Diet:**\n";
+                response += `• **Allowed Foods:** ${keto.allowed.join(', ')}\n`;
+                response += `• **Avoid:** ${keto.avoid.join(', ')}\n`;
+                response += `• **Macro Ratio:** ${keto.macros}\n`;
+                response += `• **Key Tip:** ${keto.tips}\n\n`;
+                response += "**Sample Keto Foods:**\n";
+                response += "🥑 Avocado, 🧀 Cheese, 🥩 Meat, 🥚 Eggs, 🥬 Leafy greens, 🌰 Nuts";
+            } else if (msg.includes('vegan')) {
+                const vegan = ENHANCED_FOOD_KNOWLEDGE.dietPlans.vegan;
+                response += "**Vegan Diet:**\n";
+                response += `• **Protein Sources:** ${vegan.protein.join(', ')}\n`;
+                response += `• **Key Nutrients to Watch:** ${vegan.nutrients}\n`;
+                response += `• **Alternatives:** ${vegan.alternatives}\n`;
+                response += `• **Tip:** ${vegan.tips}\n\n`;
+                response += "**Vegan Protein Combinations:**\n";
+                response += "🌾 Rice + Beans = Complete protein\n";
+                response += "🥜 Peanut butter + Whole grain bread\n";
+                response += "🌰 Hummus + Pita bread";
+            } else if (msg.includes('mediterranean')) {
+                const med = ENHANCED_FOOD_KNOWLEDGE.dietPlans.mediterranean;
+                response += "**Mediterranean Diet:**\n";
+                response += `• **Staples:** ${med.staples.join(', ')}\n`;
+                response += `• **Limited:** ${med.limited.join(', ')}\n`;
+                response += `• **Benefits:** ${med.benefits}\n`;
+                response += `• **Tips:** ${med.tips}\n\n`;
+                response += "**Mediterranean Meal Ideas:**\n";
+                response += "🐟 Grilled fish with olive oil and herbs\n";
+                response += "🥗 Greek salad with feta\n";
+                response += "🍝 Pasta with tomatoes and basil";
+            } else {
+                // General diet advice
+                response += "**Healthy Eating Principles:**\n\n";
+                response += "🍎 **Variety:** Eat a rainbow of colors\n";
+                response += "🥗 **Balance:** Include all food groups\n";
+                response += "🍽️ **Portion Control:** Use smaller plates\n";
+                response += "💧 **Hydration:** Drink plenty of water\n";
+                response += "🕐 **Timing:** Regular meal times\n\n";
+                response += "**Popular Diet Options:**\n";
+                response += "• **Keto:** High fat, low carb\n";
+                response += "• **Vegan:** Plant-based only\n";
+                response += "• **Mediterranean:** Heart-healthy traditional\n";
+                response += "• **DASH:** Blood pressure focused\n\n";
+                response += "Ask about specific diets like 'keto diet guidelines' for detailed information!";
+            }
+            
+            return response;
+        }
+
+        function handleCookingRequest(msg) {
+            let response = "👨‍🍳 **Cooking Tips & Techniques:**\n\n";
+            
+            const techniques = ENHANCED_FOOD_KNOWLEDGE.cookingTips.techniques;
+            const temperatures = ENHANCED_FOOD_KNOWLEDGE.cookingTips.temperatures;
+            
+            if (msg.includes('temperature')) {
+                response += "🌡️ **Safe Cooking Temperatures:**\n";
+                for (const [food, temp] of Object.entries(temperatures)) {
+                    response += `• **${food.charAt(0).toUpperCase() + food.slice(1)}:** ${temp}\n`;
+                }
+                response += "\n💡 **Pro Tip:** Use a meat thermometer for accuracy!";
+            } else if (msg.includes('sauté') || msg.includes('roast') || msg.includes('steam') || msg.includes('technique')) {
+                response += "🔥 **Cooking Techniques:**\n\n";
+                for (const [technique, description] of Object.entries(techniques)) {
+                    response += `**${technique.charAt(0).toUpperCase() + technique.slice(1)}:** ${description}\n\n`;
+                }
+                response += "**Technique Tips:**\n";
+                response += "• Don't overcrowd pans when sautéing\n";
+                response += "• Let meat rest after cooking\n";
+                response += "• Preheat your oven for roasting\n";
+                response += "• Cut vegetables uniformly for even cooking";
+            } else {
+                response += "**Essential Cooking Tips:**\n\n";
+                response += "🔪 **Prep Work:** Mise en place - prepare everything first\n";
+                response += "🧂 **Seasoning:** Taste and adjust throughout cooking\n";
+                response += "🔥 **Heat Control:** Match heat level to cooking method\n";
+                response += "⏰ **Timing:** Don't rush - good food takes time\n";
+                response += "🌿 **Fresh Herbs:** Add delicate herbs at the end\n\n";
+                response += "**Basic Equipment:**\n";
+                response += "• Sharp knives and cutting board\n";
+                response += "• Heavy-bottomed pans\n";
+                response += "• Instant-read thermometer\n";
+                response += "• Kitchen scale for accuracy\n\n";
+                response += "Ask about specific techniques like 'how to sauté vegetables' or 'roasting temperatures'!";
+            }
+            
+            return response;
+        }
+
+        function handleMealPlanningRequest(msg) {
+            let response = "📅 **Meal Planning & Prep Guide:**\n\n";
+            
+            response += "**Weekly Meal Planning Steps:**\n";
+            response += "1️⃣ **Plan:** Choose recipes for the week\n";
+            response += "2️⃣ **Shop:** Make a detailed grocery list\n";
+            response += "3️⃣ **Prep:** Wash, chop, and cook basics\n";
+            response += "4️⃣ **Store:** Proper containers and labeling\n\n";
+            
+            response += "**Meal Prep Ideas:**\n";
+            response += "🍳 **Breakfast:** Overnight oats, egg muffins, smoothie packs\n";
+            response += "🥗 **Lunch:** Grain bowls, soups, salad jars\n";
+            response += "🍽️ **Dinner:** Sheet pan meals, slow cooker recipes, stir-fries\n";
+            response += "🥜 **Snacks:** Cut vegetables, portioned nuts, homemade energy balls\n\n";
+            
+            response += "**Time-Saving Tips:**\n";
+            response += "• Batch cook grains and proteins\n";
+            response += "• Pre-cut vegetables when you get home from shopping\n";
+            response += "• Use freezer-friendly meals\n";
+            response += "• Repurpose leftovers creatively\n\n";
+            
+            response += "**Sample Weekly Plan:**\n";
+            response += "**Monday:** Chicken stir-fry with rice\n";
+            response += "**Tuesday:** Vegetable soup with bread\n";
+            response += "**Wednesday:** Fish with roasted vegetables\n";
+            response += "**Thursday:** Pasta with tomato sauce\n";
+            response += "**Friday:** Homemade pizza night\n";
+            response += "**Weekend:** Try new recipes or meal prep\n\n";
+            
+            response += "Need specific meal prep recipes? Ask me for 'batch cooking ideas' or 'freezer meal recipes'!";
+            
+            return response;
+        }
+
+        function getDefaultFoodResponse() {
+            return `🍽️ **I'm your comprehensive food assistant!** Here's what I can help you with:
+
+**🍳 Recipe Questions:**
+• "Chicken and rice recipe with quantities"
+• "Vegetarian pasta ideas"
+• "Quick breakfast recipes"
+
+**🥗 Nutrition Information:**
+• "Nutritional value of spinach per 100g"
+• "Calories in chicken breast"
+• "Vitamin content in broccoli"
+
+**🥶 Storage & Preservation:**
+• "How to store avocados properly"
+• "Best way to keep herbs fresh"
+• "Freezing bread tips"
+
+**🎯 Diet-Specific Advice:**
+• "Keto-friendly foods list"
+• "Vegan protein sources"
+• "Mediterranean diet basics"
+
+**👨‍🍳 Cooking Techniques:**
+• "How to sauté vegetables"
+• "Safe cooking temperatures"
+• "Roasting techniques"
+
+**📅 Meal Planning:**
+• "Weekly meal prep ideas"
+• "Batch cooking tips"
+• "Healthy lunch options"
+
+Just ask me anything about food, nutrition, recipes, or cooking! I have detailed information on hundreds of ingredients, cooking methods, and dietary approaches.`;
+        }
+
+        function addMessage(message, sender) {
+            const messagesContainer = document.getElementById('aiMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = sender === 'user' ? 'user-message' : 'ai-message';
+            
+            if (sender === 'ai' && message.includes('<div class="recipe-card">')) {
+                messageDiv.innerHTML = message;
+            } else {
+                messageDiv.innerHTML = message.replace(/\n/g, '<br>');
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('aiMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'ai-typing';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // UI Functions (keeping original functionality)
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function toggleAddForm() {
+            const form = document.getElementById('addForm');
+            if (form.classList.contains('show')) {
+                hideAddForm();
+            } else {
+                form.classList.add('show');
+                document.getElementById('itemName').focus();
+            }
+        }
+
+        function hideAddForm() {
+            document.getElementById('addForm').classList.remove('show');
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemCategory').value = 'dairy';
+            document.getElementById('itemQuantity').value = '1';
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('itemExpiry').value = tomorrow.toISOString().split('T')[0];
+        }
+
+        function saveItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const category = document.getElementById('itemCategory').value;
+            const expiry = document.getElementById('itemExpiry').value;
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+
+            if (!name || !expiry || quantity < 1) {
+                showNotification('Please fill in all fields correctly', 'warning');
+                return;
+            }
+
+            const categoryIcons = {
+                dairy: '🥛', fruits: '🍎', vegetables: '🥕', 
+                meat: '🥩', grains: '🌾', other: '📦'
+            };
+
+            const newItem = {
+                id: Date.now(),
+                name,
+                category,
+                expiry,
+                quantity,
+                icon: categoryIcons[category],
+                dateAdded: new Date().toISOString()
+            };
+
+            foodItems.push(newItem);
+            saveDataToStorage();
+            updateStats();
+            renderItems();
+            hideAddForm();
+            
+            showNotification(`${name} added to inventory!`, 'success');
+        }
+
+        function deleteItem(id) {
+            const item = foodItems.find(item => item.id === id);
+            if (confirm(`Are you sure you want to delete ${item.name}?`)) {
+                foodItems = foodItems.filter(item => item.id !== id);
+                saveDataToStorage();
+                updateStats();
+                renderItems();
+                showNotification(`${item.name} removed from inventory`, 'info');
+            }
+        }
+
+        function updateStats() {
+            const today = new Date();
+            const urgentDate = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days
+            const warningDate = new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000); // 5 days
+
+            let urgentCount = 0;
+            let warningCount = 0;
+            let goodCount = 0;
+
+            foodItems.forEach(item => {
+                const expiryDate = new Date(item.expiry);
+                if (expiryDate <= urgentDate) {
+                    urgentCount++;
+                } else if (expiryDate <= warningDate) {
+                    warningCount++;
+                } else {
+                    goodCount++;
+                }
+            });
+
+            document.getElementById('urgentCount').textContent = urgentCount;
+            document.getElementById('warningCount').textContent = warningCount;
+            document.getElementById('goodCount').textContent = goodCount;
+            document.getElementById('totalCount').textContent = foodItems.length;
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsList');
+            const filteredItems = getFilteredItems();
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h3>No items found</h3>
+                        <p>Add some items to your inventory or adjust your filters</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredItems.map(item => {
+                const status = getItemStatus(item);
+                const daysLeft = getDaysUntilExpiry(item.expiry);
+                
+                return `
+                    <div class="item">
+                        <div class="item-info">
+                            <div class="item-icon">${item.icon}</div>
+                            <div class="item-details">
+                                <h4>${item.name}</h4>
+                                <p>Expires: ${formatDate(item.expiry)} (${daysLeft})</p>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <div class="status-badge status-${status.type}">
+                                ${status.icon} ${status.text}
+                            </div>
+                            <button class="btn-danger" onclick="deleteItem(${item.id})" title="Delete item">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getFilteredItems() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            return foodItems.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+        }
+
+        function filterItems() {
+            renderItems();
+        }
+
+        function getItemStatus(item) {
+            const today = new Date();
+            const expiryDate = new Date(item.expiry);
+            const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+            if (daysLeft < 0) {
+                return { type: 'expired', icon: '❌', text: 'Expired' };
+            } else if (daysLeft <= 2) {
+                return { type: 'urgent', icon: '⚠️', text: 'Urgent' };
+            } else if (daysLeft <= 5) {
+                return { type: 'warning', icon: '⚡', text: 'Soon' };
+            } else {
+                return { type: 'good', icon: '✅', text: 'Fresh' };
+            }
+        }
+
+        function getDaysUntilExpiry(expiry) {
+            const today = new Date();
+            const expiryDate = new Date(expiry);
+            const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysLeft < 0) {
+                return `${Math.abs(daysLeft)} days ago`;
+            } else if (daysLeft === 0) {
+                return 'Today';
+            } else if (daysLeft === 1) {
+                return 'Tomorrow';
+            } else {
+                return `${daysLeft} days left`;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        // Notification System
+        function startNotificationSystem() {
+            checkForExpiringItems();
+            // Check every hour for new notifications
+            setInterval(checkForExpiringItems, 60 * 60 * 1000);
+        }
+
+        function checkForExpiringItems() {
+            if (!notificationSettings.expiration) return;
+            
+            const today = new Date();
+            const urgentDate = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days
+            
+            foodItems.forEach(item => {
+                const expiryDate = new Date(item.expiry);
+                const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                
+                // Check if we should notify about this item
+                const notificationId = `expiry-${item.id}`;
+                if (daysLeft <= 2 && daysLeft >= 0 && !hasNotification(notificationId)) {
+                    const urgency = daysLeft === 0 ? 'critical' : daysLeft === 1 ? 'warning' : 'info';
+                    const timeText = daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`;
+                    
+                    showNotification(
+                        `${item.icon} ${item.name} expires ${timeText}!`,
+                        urgency,
+                        `Consider using it soon or check if it's still good.`,
+                        [
+                            { text: 'Get Recipe Ideas', action: () => openAIChat('recipe') },
+                            { text: 'Mark as Used', action: () => deleteItem(item.id) }
+                        ],
+                        notificationId
+                    );
+                }
+            });
+        }
+
+        function showNotification(title, type = 'info', body = '', actions = [], id = null) {
+            const notificationCenter = document.getElementById('notificationCenter');
+            const notificationId = id || `notification-${Date.now()}`;
+            
+            const notification = document.createElement('div');
+            notification.className = `smart-notification ${type}`;
+            notification.id = notificationId;
+            
+            const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            notification.innerHTML = `
+                <button class="notification-close" onclick="closeNotification('${notificationId}')">&times;</button>
+                <div class="notification-header">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-time">${currentTime}</div>
+                </div>
+                ${body ? `<div class="notification-body">${body}</div>` : ''}
+                ${actions.length > 0 ? `
+                    <div class="notification-actions">
+                        ${actions.map((action, index) => 
+                            `<button class="notification-btn ${index === 0 ? 'primary' : 'secondary'}" onclick="handleNotificationAction('${notificationId}', ${index})">${action.text}</button>`
+                        ).join('')}
+                    </div>
+                ` : ''}
+            `;
+            
+            notificationCenter.appendChild(notification);
+            
+            // Store notification data for actions
+            notifications.push({
+                id: notificationId,
+                actions: actions
+            });
+            
+            // Animate in
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Auto-remove after 10 seconds unless it has actions
+            if (actions.length === 0) {
+                setTimeout(() => closeNotification(notificationId), 10000);
+            }
+        }
+
+        function closeNotification(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 400);
+            }
+            
+            // Remove from notifications array
+            notifications = notifications.filter(n => n.id !== id);
+        }
+
+        function handleNotificationAction(notificationId, actionIndex) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification && notification.actions[actionIndex]) {
+                notification.actions[actionIndex].action();
+                closeNotification(notificationId);
+            }
+        }
+
+        function hasNotification(id) {
+            return document.getElementById(id) !== null;
+        }
+
+        function toggleNotificationSetting(setting) {
+            const toggle = document.querySelector(`[data-setting="${setting}"]`);
+            notificationSettings[setting] = !notificationSettings[setting];
+            
+            if (notificationSettings[setting]) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+            
+            saveDataToStorage();
+            
+            showNotification(
+                `${setting.charAt(0).toUpperCase() + setting.slice(1)} notifications ${notificationSettings[setting] ? 'enabled' : 'disabled'}`,
+                'info'
+            );
+        }
+    </script>
+</body>
+</html>
